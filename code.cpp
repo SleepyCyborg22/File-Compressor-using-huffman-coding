@@ -44,12 +44,20 @@ void merge(vector<int> &array,vector<char> &c, int const left, int const mid, in
     // Create temp arrays
     auto *leftArray = new int[subArrayOne],
          *rightArray = new int[subArrayTwo];
+    auto *leftc = new char[subArrayOne];
+    auto    *rightc = new char[subArrayTwo];
+
+    
  
     // Copy data to temp arrays leftArray[] and rightArray[]
-    for (auto i = 0; i < subArrayOne; i++)
+    for (auto i = 0; i < subArrayOne; i++){
         leftArray[i] = array[left + i];
-    for (auto j = 0; j < subArrayTwo; j++)
+        leftc[i] = c[left+i];
+    }
+    for (auto j = 0; j < subArrayTwo; j++){
         rightArray[j] = array[mid + 1 + j];
+        rightc[j] = c[mid + 1 +j];
+    }
  
     auto indexOfSubArrayOne = 0, // Initial index of first sub-array
         indexOfSubArrayTwo = 0; // Initial index of second sub-array
@@ -59,10 +67,12 @@ void merge(vector<int> &array,vector<char> &c, int const left, int const mid, in
     while (indexOfSubArrayOne < subArrayOne && indexOfSubArrayTwo < subArrayTwo) {
         if (leftArray[indexOfSubArrayOne] <= rightArray[indexOfSubArrayTwo]) {
             array[indexOfMergedArray] = leftArray[indexOfSubArrayOne];
+            c[indexOfMergedArray] = leftc[indexOfSubArrayOne];
             indexOfSubArrayOne++;
         }
         else {
             array[indexOfMergedArray] = rightArray[indexOfSubArrayTwo];
+            c[indexOfMergedArray] = rightc[indexOfSubArrayTwo];
             indexOfSubArrayTwo++;
         }
         indexOfMergedArray++;
@@ -71,6 +81,7 @@ void merge(vector<int> &array,vector<char> &c, int const left, int const mid, in
     // left[], if there are any
     while (indexOfSubArrayOne < subArrayOne) {
         array[indexOfMergedArray] = leftArray[indexOfSubArrayOne];
+        c[indexOfMergedArray] = leftc[indexOfSubArrayOne];
         indexOfSubArrayOne++;
         indexOfMergedArray++;
     }
@@ -78,6 +89,7 @@ void merge(vector<int> &array,vector<char> &c, int const left, int const mid, in
     // right[], if there are any
     while (indexOfSubArrayTwo < subArrayTwo) {
         array[indexOfMergedArray] = rightArray[indexOfSubArrayTwo];
+        c[indexOfMergedArray] = rightc[indexOfSubArrayTwo];
         indexOfSubArrayTwo++;
         indexOfMergedArray++;
     }
@@ -104,7 +116,10 @@ int main(){
     vector<int> freq = getfreq(c,s);
 
     int n = c.size();
+    mergeSort(freq,c,0,n-1);
     for(int i=0;i<n;i++){
         cout<<c[i]<<" "<<freq[i]<<endl;
     }
+
+    
 }
