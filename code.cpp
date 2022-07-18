@@ -2,6 +2,20 @@
 
 using namespace std;
 
+struct htnode{
+    unsigned freq;
+    char* nc;
+    struct htnode* left;
+    struct htnode* right;
+    
+};
+
+struct comparefreq{
+    bool operator()(htnode*& n1,htnode*& n2){
+        return n1->freq>=n2->freq;
+    }
+};
+
 vector<char> unichar(string s){
     int n = s.size();
     vector<char> c;
@@ -36,77 +50,83 @@ vector<int> getfreq(vector<char> &c, string s){
     return freq;
 }
 
-void merge(vector<int> &array,vector<char> &c, int const left, int const mid, int const right)
-{
-    auto const subArrayOne = mid - left + 1;
-    auto const subArrayTwo = right - mid;
- 
-    // Create temp arrays
-    auto *leftArray = new int[subArrayOne],
-         *rightArray = new int[subArrayTwo];
-    auto *leftc = new char[subArrayOne];
-    auto    *rightc = new char[subArrayTwo];
-
-    
- 
-    // Copy data to temp arrays leftArray[] and rightArray[]
-    for (auto i = 0; i < subArrayOne; i++){
-        leftArray[i] = array[left + i];
-        leftc[i] = c[left+i];
+htnode* huffmancoding(vector<char> c,vector<int> freq){
+    int n = c.size();
+    priority_queue<htnode*,vector<htnode*>,comparefreq> que;
+    for(int i=0;i<n;i++){
+        char* cc;
+        cc = (char*)malloc(sizeof(char));
+        cc[0] = c[i];
+        htnode* temp = new htnode;
+        temp->freq = freq[i];
+        temp->nc = cc;
+        temp->left = NULL;
+        temp->right = NULL;
+        que.push(temp);
     }
-    for (auto j = 0; j < subArrayTwo; j++){
-        rightArray[j] = array[mid + 1 + j];
-        rightc[j] = c[mid + 1 +j];
-    }
- 
-    auto indexOfSubArrayOne = 0, // Initial index of first sub-array
-        indexOfSubArrayTwo = 0; // Initial index of second sub-array
-    int indexOfMergedArray = left; // Initial index of merged array
- 
-    // Merge the temp arrays back into array[left..right]
-    while (indexOfSubArrayOne < subArrayOne && indexOfSubArrayTwo < subArrayTwo) {
-        if (leftArray[indexOfSubArrayOne] <= rightArray[indexOfSubArrayTwo]) {
-            array[indexOfMergedArray] = leftArray[indexOfSubArrayOne];
-            c[indexOfMergedArray] = leftc[indexOfSubArrayOne];
-            indexOfSubArrayOne++;
+    htnode* root;
+    while(!que.empty()){
+        htnode* n1 = que.top();
+        que.pop();
+        if(!que.empty()){
+            htnode* n2 = que.top();
+            que.pop();
+            char* cc = NULL;
+            htnode* n3 =  new htnode;
+            n3->freq = n1->freq + n2->freq;
+            n3->nc = cc;
+            // cout<<n1->freq<<" "<<n2->freq<<endl;
+            // cout<<n3->freq<<endl;
+            n3->left = n1;
+            n3->right = n2;
+            que.push(n3);
         }
-        else {
-            array[indexOfMergedArray] = rightArray[indexOfSubArrayTwo];
-            c[indexOfMergedArray] = rightc[indexOfSubArrayTwo];
-            indexOfSubArrayTwo++;
+        else{
+            root = n1;
+            // cout<<"rara"<<root->freq<<endl;
+            break;
         }
-        indexOfMergedArray++;
     }
-    // Copy the remaining elements of
-    // left[], if there are any
-    while (indexOfSubArrayOne < subArrayOne) {
-        array[indexOfMergedArray] = leftArray[indexOfSubArrayOne];
-        c[indexOfMergedArray] = leftc[indexOfSubArrayOne];
-        indexOfSubArrayOne++;
-        indexOfMergedArray++;
-    }
-    // Copy the remaining elements of
-    // right[], if there are any
-    while (indexOfSubArrayTwo < subArrayTwo) {
-        array[indexOfMergedArray] = rightArray[indexOfSubArrayTwo];
-        c[indexOfMergedArray] = rightc[indexOfSubArrayTwo];
-        indexOfSubArrayTwo++;
-        indexOfMergedArray++;
-    }
+    return root;
 }
- 
-// begin is for left index and end is
-// right index of the sub-array
-// of arr to be sorted */
-void mergeSort(vector<int> &array,vector<char> &c, int const begin, int const end)
-{
-    if (begin >= end)
-        return; // Returns recursively
- 
-    auto mid = begin + (end - begin) / 2;
-    mergeSort(array,c, begin, mid);
-    mergeSort(array,c, mid + 1, end);
-    merge(array,c, begin, mid, end);
+
+void tra(htnode* root,string s,vector<string>& key){
+    // cout<<s<<" "<<root->freq<<endl;
+    if(root->nc!=NULL){
+        cout<<root->nc[0]<<": "<<root->freq<<": "<<s<<endl;
+        key[root->nc[0]-' ']=s;
+    }
+    int n = s.size();
+    s+="1";
+    if(root->left!=NULL)tra(root->left,s,key);
+    s[n]='0';
+    if(root->right!=NULL)tra(root->right,s,key);
+}
+
+string printencodedtext(vector<string> key,string s){
+    string ans;
+    int n = s.size();
+    for(int i=0;i<n;i++){
+        cout<<key[s[i]-' '];
+        ans+=key[s[i]-' '];
+    }
+    cout<<endl;
+    return ans;
+}
+
+void cnfrm(htnode* node, string s){
+    htnode* root = node;
+    int n = s.size();
+    for(int i=0;i<=n;i++){
+        
+        if(s[i]=='1')node=node->left;
+        else node=node->right;
+
+        if(node->nc!=NULL){
+            cout<<node->nc[0];
+            node=root;
+        }
+    }
 }
 
 int main(){
@@ -116,10 +136,15 @@ int main(){
     vector<int> freq = getfreq(c,s);
 
     int n = c.size();
-    mergeSort(freq,c,0,n-1);
-    for(int i=0;i<n;i++){
-        cout<<c[i]<<" "<<freq[i]<<endl;
-    }
-
     
+    htnode* root = huffmancoding(c,freq);
+    // cout<<root->freq<<endl;
+    vector<string> key(96);
+    string g="";
+    tra(root,g,key);
+ 
+    string ans = printencodedtext(key,s);
+
+    cnfrm(root,ans);    
+    return 0;
 }
